@@ -352,8 +352,21 @@
     <!-- СТРАНИЦА 1: СЛОТ-МАШИНА -->
     <div id="slot-page" class="page active">
         <div class="section">
-            <h2>Настраиваемая слот-машина</h2>
+            <h2>Рулеточка</h2>
             <div class="controls">
+                <div class="slot-machine-container" id="slot-machine">
+    <!-- ДВЕ ЛИНИИ ВЫИГРЫША -->
+    <div class="slot-line line-1"></div>
+    <div class="slot-line line-2"></div>
+    <div class="slot-line line-3"></div>
+    <div class="slot-line line-4"></div>
+    <div class="slot-line line-5"></div>
+    
+    <!-- Барабаны создаются через JS ниже -->
+</div>
+            
+            <button style="width:100%; background: #356; color: #000;" onclick="spinSlots()">Крутить слоты!</button>
+        </div>
                 <label>Символы и веса через запятую (Символ:Вес):</label>
                 <input type="text" id="slot-symbols" value="🍒:169,🍋:160,🍇:60,🍏:60,🌮:60,💎:30,173:20,💣:20,☠:5,">
                 <div class="hint"><details class="collapsible-info">
@@ -375,7 +388,8 @@
         <p align="center"><h2 align="center">Джекпот = х50 инвентарь</h2></p>
         <p align="center">==================================</p>
     </div>
-</details></div>
+</details>
+            </div>
                 
                 <div class="row-controls">
                     <div>
@@ -387,22 +401,11 @@
                         <input type="number" id="slot-rows" value="3" min="1" max="5">
                     </div>
                 </div>
-                <button onclick="initSlots()">Применить настройки</button>
+                <div align="center">
+                <button onclick="initSlots()">Применить настройки</button></div>
             </div>
             
-            <div class="slot-machine-container" id="slot-machine">
-    <!-- ДВЕ ЛИНИИ ВЫИГРЫША -->
-    <div class="slot-line line-1"></div>
-    <div class="slot-line line-2"></div>
-    <div class="slot-line line-3"></div>
-    <div class="slot-line line-4"></div>
-    <div class="slot-line line-5"></div>
-    
-    <!-- Барабаны создаются через JS ниже -->
-</div>
-            
-            <button style="width:100%; background: #356; color: #000;" onclick="spinSlots()">Крутить слоты!</button>
-        </div>
+
     </div>
 
     <!-- СТРАНИЦА 2: КОЛЕСО ФОРТУНЫ -->
