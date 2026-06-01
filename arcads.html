@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Игровой зал с настройкой шансов</title>
+    <style>
+        :root {
+            --primary: #15455b;
+            --accent: #00ffcc;
+            --dark: #1a1a1a;
+            --light: #ffffff;
+            --symbol-height: 100px;
+        }
+        body {
+            font-family: system-ui, sans-serif;
+            background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.7)), url('roor2.png');
+            background-repeat: no-repeat;          
+            background-position: center center;   
+            background-attachment: fixed;
+            color: var(--light);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* --- НАВИГАЦИЯ --- */
+        .nav-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        .tab-btn {
+            background: #124;
+            color: #aaa;
+            border: 2px solid #444;
+            padding: 12px 24px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: 0.3s;
+        }
+        .tab-btn.active {
+            background: var(--primary);
+            color: var(--light);
+            border-color: var(--accent);
+        }
+        .page {
+            display: none;
+            width: 100%;
+            max-width: 600px;
+        }
+        .page.active {
+            display: block;
+
+        }
+
+        /* --- ОБЩИЕ СТИЛИ --- */
+        .section {
+            background: #102525;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .row-controls {
+            display: flex;
+            gap: 10px;
+        }
+        .row-controls div {
+            flex: 1;
+        }
+        input, textarea, button {
+            padding: 10px;
+            border-radius: 6px;
+            border: none;
+            font-size: 16px;
+        }
+        input, textarea { 
+            color: #ffffff;/* Цвет вводимого текста */
+            border: 2px solid #225555; /* Цвет рамки вокруг поля */
+            background: #113a3a; 
+            color: #fff; width: 100%; 
+            box-sizing: border-box; }
+        button {
+            background: var(--primary);
+            color: #fff;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        button:hover { filter: brightness(1.2); }
+        .hint {
+            font-size: 13px;
+            color: #aaa;
+            margin-top: -5px;
+        }
+        
+        /* --- СЛОТ-МАШИНА --- */
+        .slot-machine-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            background: #123;
+            padding: 20px;
+            border-radius: 8px;
+            border: 4px solid #356;
+            overflow: hidden;
+            margin-bottom: 15px;
+            position: relative;
+        }
+        /* Общие стили для всех линий разметки */
+.slot-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 3px; /* Сделали чуть толще для видимости */
+    z-index: 5;
+    pointer-events: none;
+    transform-origin: center; /* Вращение происходит точно вокруг центра контейнера */
+}
+
+/* Настройка первой линии */
+.slot-line.line-1 {
+    /* Сдвигаем на 15 пикселей выше центра и наклоняем на 5 градусов */
+    transform: translateY(-50%) translateY(0px) rotate(0deg);
+    background: rgba(0, 200, 160, 0.5); /* Синяя */
+    top: 50%;
+}
+
+/* Настройка второй линии */
+.slot-line.line-2 {
+    /* Сдвигаем на 15 пикселей ниже центра и наклоняем в противоположную сторону */
+    transform: translateY(-50%) translateY(0px) rotate(0deg);
+    background: rgba(0, 90, 160, 0.5);
+    top: 20%;
+}
+/* Настройка второй линии */
+.slot-line.line-3 {
+    /* Сдвигаем на 15 пикселей ниже центра и наклоняем в противоположную сторону */
+    transform: translateY(-50%) translateY(0px) rotate(0deg);
+    background: rgba(0, 90, 160, 0.5); /* Для теста сделал розовой, чтобы вы их различали */
+    top: 80%;
+}
+/* Настройка второй линии */
+.slot-line.line-4 {
+    /* Сдвигаем на 15 пикселей ниже центра и наклоняем в противоположную сторону */
+    transform: translateY(-50%) translateY(0px) rotate(45deg);
+    background: rgba(0, 90, 160, 0.5); /* Для теста сделал розовой, чтобы вы их различали */
+    top: 50%;
+}
+/* Настройка второй линии */
+.slot-line.line-5 {
+    /* Сдвигаем на 15 пикселей ниже центра и наклоняем в противоположную сторону */
+    transform: translateY(-50%) translateY(0px) rotate(-45deg);
+    background: rgba(0, 90, 160, 0.5); /* Для теста сделал розовой, чтобы вы их различали */
+    top: 50%;
+}
+
+        .reel {
+            width: 80px;
+            background: #fff;
+            color: #000;
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+            font-size: 40px;
+            font-weight: bold;
+        }
+        .reel-track {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .symbol {
+            height: var(--symbol-height);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+        }
+
+        /* --- КОЛЕСО ФОРТУНЫ --- */
+        .wheel-wrapper {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin: 20px auto;
+        }
+        .pointer {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 30px solid red;
+            z-index: 10;
+        }
+        canvas {
+            border-radius: 50%;
+            box-shadow: 0 0 15px rgba(0,0,0,0.8);
+            transition: transform 4s cubic-bezier(0.1, 0.8, 0.3, 1);
+        }
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+        .checkbox-label input { width: auto; }
+
+        /* --- ПОПАП --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal-content {
+            background: rgba(15,15,50,0.45);
+            padding: 30px;
+            border-radius: 16px;
+            border: 3px solid var(--accent);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            transform: scale(0.8);
+            transition: transform 0.3s ease;
+            box-shadow: 0 0 30px var(--accent);
+        }
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
+        .modal-content h3 {
+            margin: 0 0 15px 0;
+            font-size: 28px;
+            color: #fff;
+        }
+        .modal-content p {
+            font-size: 22px;
+            color: var(--accent);
+            margin: 0 0 25px 0;
+            font-weight: bold;
+        }
+        .modal-close-btn {
+            background: var(--accent);
+            color: #000;
+            padding: 10px 30px;
+            font-size: 18px;
+            border-radius: 8px;
+            width: 100%;
+        }
+
+        /* Внешний контейнер разворачивающегося блока */
+.collapsible-info {
+    background: #153030;
+    border: 1px solid #444444;
+    border-radius: 8px;
+    margin-top: 15px;
+    overflow: hidden;
+    transition: background 0.3s ease;
+}
+
+/* Стили для кликабельного заголовка */
+.collapsible-info summary {
+    padding: 12px 15px;
+    font-weight: bold;
+    color: #055;
+    cursor: pointer;
+    user-select: none;
+    outline: none;
+    list-style: none; /* Убираем стандартную стрелочку браузера */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Создаем свою кастомную стрелочку справа */
+.collapsible-info summary::after {
+    content: '▼';
+    font-size: 12px;
+    transition: transform 0.3s ease;
+    color: #888;
+}
+
+/* Поворачиваем стрелочку, когда блок открыт */
+.collapsible-info[open] summary::after {
+    transform: rotate(180deg);
+    color: var(--accent);
+}
+
+/* Небольшая подсветка заголовка при наведении */
+.collapsible-info summary:hover {
+    background: #203a3a;
+}
+
+/* Блок со скрытым текстом внутри */
+.collapsible-info .content {
+    padding: 15px;
+    background: #102020;
+    border-top: 1px solid #444444;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #dddddd;
+}
+
+.collapsible-info .content p {
+    margin: 0 0 10px 0;
+}
+.collapsible-info .content p:last-child {
+    margin-bottom: 0;
+}
+    </style>
+</head>
+<body>
+
+    <div class="nav-tabs">
+        <button class="tab-btn active" onclick="switchPage('slot-page', this)">🎰 Слот-машина</button>
+        <button class="tab-btn" onclick="switchPage('wheel-page', this)">🎡 Колесо фортуны</button>
+    </div>
+
+    <!-- СТРАНИЦА 1: СЛОТ-МАШИНА -->
+    <div id="slot-page" class="page active">
+        <div class="section">
+            <h2>Настраиваемая слот-машина</h2>
+            <div class="controls">
+                <label>Символы и веса через запятую (Символ:Вес):</label>
+                <input type="text" id="slot-symbols" value="🍒:169,🍋:160,🍇:60,🍏:60,🌮:60,💎:30,173:20,💣:20,☠:5,">
+                <div class="hint"><details class="collapsible-info">
+    <summary>Посмотреть правила</summary>
+    <div align="center" class="content">
+        <p align="center"><h2 align="center"> Сумируются по линиям</h2></p>
+        <p align="center"><h2 align="center">(3 горизонтальне 2 косые)</h2></p>
+        <p style="text-align: justify; text-align-last: justify; width: 100%; max-width: 400px;">🍒&nbsp;1&nbsp;=&nbsp;0 🍒&nbsp;2&nbsp;=&nbsp;0 🍒&nbsp;3&nbsp;=&nbsp;+5</p>
+        <p style="text-align: justify; text-align-last: justify; width: 100%; max-width: 400px;">🍋&nbsp;1&nbsp;=&nbsp;0 🍋&nbsp;2&nbsp;=&nbsp;0 🍋&nbsp;3&nbsp;=&nbsp;+10</p>
+        <p style="text-align: justify; text-align-last: justify; width: 100%; max-width: 400px;">🍇&nbsp;1&nbsp;=&nbsp;0 🍇&nbsp;2&nbsp;=&nbsp;0 🍇&nbsp;3&nbsp;=&nbsp;+20</p>
+        <p style="text-align: justify; text-align-last: justify; width: 100%; max-width: 400px;">🍏&nbsp;1&nbsp;=&nbsp;0 🍏&nbsp;2&nbsp;=&nbsp;0 🍏&nbsp;3&nbsp;=&nbsp;+20</p>
+        <p style="text-align: justify; text-align-last: justify; width: 100%; max-width: 400px;">🌮&nbsp;1&nbsp;=&nbsp;0 🌮&nbsp;2&nbsp;=&nbsp;0  🌮&nbsp;3&nbsp;=&nbsp;Х2</p>
+        <p style="text-align: justify; text-align-last: justify; width: 100%; max-width: 400px;">💎&nbsp;1&nbsp;=&nbsp;0 💎&nbsp;2&nbsp;=&nbsp;Х5 💎&nbsp;3&nbsp;=&nbsp;Х10</p>
+        <p style="text-align: justify; text-align-last: justify; width: 100%; max-width: 400px;">173&nbsp;1&nbsp;=&nbsp;0   173&nbsp;2&nbsp;=&nbsp;Х10    173&nbsp;3&nbsp;=&nbsp;Х10&nbsp;инвентарь</p>
+        <p align="center"><h2 align="center">Сумируются друг с другом по главной линии</h2></p>
+        <p style="text-align: justify; text-align-last: justify; width: 100%; max-width: 400px;">💣&nbsp;1&nbsp;=&nbsp;-10    💣&nbsp;2&nbsp;=&nbsp;/2     💣&nbsp;3&nbsp;=&nbsp;-СТАК</p>
+        <p style="text-align: justify; text-align-last: justify; width: 100%; max-width: 400px;">☠&nbsp;1&nbsp;=&nbsp;/2     ☠&nbsp;2&nbsp;=&nbsp;-СТАК     ☠&nbsp;3&nbsp;=&nbsp;-ИНВЕНТАРЬ</p>
+        <p align="center">==================================</p>
+        <p align="center"><h2 align="center">Джекпот = х50 инвентарь</h2></p>
+        <p align="center">==================================</p>
+    </div>
+</details></div>
+                
+                <div class="row-controls">
+                    <div>
+                        <label>Барабанов (ширина):</label>
+                        <input type="number" id="slot-count" value="3" min="1" max="6">
+                    </div>
+                    <div>
+                        <label>Рядов (высота):</label>
+                        <input type="number" id="slot-rows" value="3" min="1" max="5">
+                    </div>
+                </div>
+                <button onclick="initSlots()">Применить настройки</button>
+            </div>
+            
+            <div class="slot-machine-container" id="slot-machine">
+    <!-- ДВЕ ЛИНИИ ВЫИГРЫША -->
+    <div class="slot-line line-1"></div>
+    <div class="slot-line line-2"></div>
+    <div class="slot-line line-3"></div>
+    <div class="slot-line line-4"></div>
+    <div class="slot-line line-5"></div>
+    
+    <!-- Барабаны создаются через JS ниже -->
+</div>
+            
+            <button style="width:100%; background: #356; color: #000;" onclick="spinSlots()">Крутить слоты!</button>
+        </div>
+    </div>
+
+    <!-- СТРАНИЦА 2: КОЛЕСО ФОРТУНЫ -->
+    <div id="wheel-page" class="page">
+        <div class="section">
+            <h2>Колесо фортуны</h2>
+            <div class="controls">
+                <label>Варианты и веса (Название:Вес, каждый с новой строки):</label>
+                 <!-- Чётки верности (Beads of Fealty)Хрупкая корона (Brittle Crown)Трупный цвет (Corpsebloom)Вызывающее долото (Defiant Gouge)Эгоцентризм (Egocentrism)Сосредоточенное схождение (Focused Convergence)Жест утопленника (Gesture of the Drowned)Наручи светового потока (Light Flux Pauldron)Ртутный позвоночник (Mercurial Rachis)Чистота (Purity)Формованное стекло (Shaped Glass)Наручи каменного потока (Stone Flux Pauldron)Трансцендентность (Transcendence)Надгробное слово нулю (Eulogy Zero)Долгое одиночество (Longstanding Solitude)Идол милосердия (Merciful Idol) Взгляд Ереси (Visions of Heresy)  Крючья Ереси (Hooks of Heresy)  Шаги Ереси (Strides of Heresy) Сущность Ереси (Essence of Heresy) -->
+                <textarea id="wheel-items" rows="6">Чётки верности (Beads of Fealty):170&#10;Хрупкая корона (Brittle Crown):50&#10;Трупоблум (Corpsebloom):90&#10;Взывающее долото (Defiant Gouge):190&#10;Эгоцентризм (Egocentrism):5&#10;Целенаправленная Конвергенция (Focused Convergence):130&#10;Жест утопленника (Gesture of the Drowned):110&#10;Наручи светового потока (Light Flux Pauldron):70&#10;Ртутный позвоночник (Mercurial Rachis):100&#10;Чистота (Purity):90&#10;Формованное стекло (Shaped Glass):30&#10;Наручи каменного потока (Stone Flux Pauldron):70&#10;Трансцендентность (Transcendence):70&#10;нетроная гиря (Neutronium Weight):80&#10;Надгробное слово нулю (Eulogy Zero):30&#10;Долгое одиночество (Longstanding Solitude):110&#10;Идол милосердия (Merciful Idol):200&#10;Взгляд Ереси (Visions of Heresy):35&#10;Крючья Ереси (Hooks of Heresy):35&#10;Шаги Ереси (Strides of Heresy):35&#10;Сущность Ереси (Essence of Heresy):35&#10;</textarea>
+                <div class="hint">Ширина сектора на колесе будет соответствовать его весу.</div>
+                
+                <label class="checkbox-label">
+                    <input type="checkbox" id="elimination-mode"> Режим на выбывание
+                </label>
+                <button onclick="initWheel()">Обновить колесо</button>
+            </div>
+
+            <div class="wheel-wrapper">
+                <div class="pointer"></div>
+                <canvas id="wheel-canvas" width="300" height="300"></canvas>
+            </div>
+
+            <button style="width:100%; background: var(--accent); color: #000;" id="spin-wheel-btn" onclick="spinWheel()">Крутить колесо!</button>
+        </div>
+    </div>
+
+    <!-- ПОПАП -->
+    <div class="modal-overlay" id="result-modal">
+        <div class="modal-content">
+            <h3 id="modal-title">Результат</h3>
+            <p id="modal-text">Вы выиграли!</p>
+            <button class="modal-close-btn" onclick="closeModal()">Отлично</button>
+        </div>
+    </div>
+
+    <script>
+       // ==================== НАВИГАЦИЯ МЕЖДУ СТРАНИЦАМИ ====================
+function switchPage(pageId, buttonElement) {
+    document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.getElementById(pageId).classList.add('active');
+    buttonElement.classList.add('active');
+}
+
+// ==================== УПРАВЛЕНИЕ ПОПАПОМ ====================
+function showPopup(title, text) {
+    document.getElementById('modal-title').innerText = title;
+    document.getElementById('modal-text').innerText = text;
+    document.getElementById('result-modal').classList.add('active');
+}
+
+function closeModal() {
+    document.getElementById('result-modal').classList.remove('active');
+}
+
+// --- Функция для взвешенного случайного выбора ---
+function getRandomWeighted(itemsArray) {
+    const totalWeight = itemsArray.reduce((sum, item) => sum + item.weight, 0);
+    let randomNum = Math.random() * totalWeight;
+    for (let i = 0; i < itemsArray.length; i++) {
+        if (randomNum < itemsArray[i].weight) {
+            return itemsArray[i];
+        }
+        randomNum -= itemsArray[i].weight;
+    }
+    return itemsArray[0];
+}
+
+// ==================== ЛОГИКА СЛОТ-МАШИНЫ ====================
+let parsedSlotSymbols = []; 
+let isSlotSpinning = false; // Флаг для защиты от повторных кликов во время анимации
+
+function parseSlotsInput() {
+    const rawInput = document.getElementById('slot-symbols').value;
+    parsedSlotSymbols = rawInput.split(',').map(s => {
+        const parts = s.split(':');
+        const name = parts[0].trim();
+        const weight = parts[1] ? parseFloat(parts[1].trim()) : 1; 
+        return { name, weight };
+    }).filter(item => item.name.length > 0);
+}
+
+function initSlots() {
+    if (isSlotSpinning) return;
+    const container = document.getElementById('slot-machine');
+    const count = parseInt(document.getElementById('slot-count').value) || 3;
+    const rows = parseInt(document.getElementById('slot-rows').value) || 3;
+    
+    parseSlotsInput();
+    if (parsedSlotSymbols.length === 0) return;
+    
+    container.innerHTML = `
+    <div class="slot-line line-1"></div>
+    <div class="slot-line line-2"></div>
+    <div class="slot-line line-3"></div>
+    <div class="slot-line line-4"></div>
+    <div class="slot-line line-5"></div>
+`;
+    const viewHeight = rows * 100;
+    
+    for(let i = 0; i < count; i++) {
+        const reel = document.createElement('div');
+        reel.className = 'reel';
+        reel.style.height = viewHeight + 'px';
+        
+        const track = document.createElement('div');
+        track.className = 'reel-track';
+        track.id = `track-${i}`;
+        
+        let initialHTML = '';
+        for(let r = 0; r < rows; r++) {
+            const chosen = getRandomWeighted(parsedSlotSymbols);
+            initialHTML += `<div class="symbol">${chosen.name}</div>`;
+        }
+        track.innerHTML = initialHTML;
+        reel.appendChild(track);
+        container.appendChild(reel);
+    }
+}
+
+function spinSlots() {
+    if (isSlotSpinning || parsedSlotSymbols.length === 0) return;
+    isSlotSpinning = true;
+
+    const count = parseInt(document.getElementById('slot-count').value) || 3;
+    const rows = parseInt(document.getElementById('slot-rows').value) || 3;
+    
+    // Массив, где мы сохраним финальные символы для каждого барабана
+    let finalSymbolsPerReel = [];
+    let maxDuration = 0;
+
+    for(let i = 0; i < count; i++) {
+        const track = document.getElementById(`track-${i}`);
+        if (!track) continue;
+        
+        let trackHTML = '';
+        const spinLength = 20 + (i * 5);
+        let currentReelSymbols = [];
+        
+        for(let j = 0; j < spinLength; j++) {
+            const chosen = getRandomWeighted(parsedSlotSymbols);
+            trackHTML += `<div class="symbol">${chosen.name}</div>`;
+            currentReelSymbols.push(chosen.name);
+        }
+        
+        // Нам нужны последние 'rows' символов, так как трек улетит наверх
+        // И они будут идти в обратном порядке снизу вверх в DOM
+        const finalVisible = currentReelSymbols.slice(-rows);
+        finalSymbolsPerReel.push(finalVisible);
+        
+        track.innerHTML = trackHTML;
+        track.style.transition = 'none';
+        track.style.top = '0px';
+        
+        const duration = 2 + i * 0.4;
+        if (duration > maxDuration) maxDuration = duration;
+        
+        setTimeout(() => {
+            track.style.transition = `top ${duration}s cubic-bezier(0.1, 0.8, 0.3, 1)`;
+            const offset = -(spinLength - rows) * 100;
+            track.style.top = offset + 'px';
+        }, 50);
+    }
+
+    // Ждем окончания самой долгой анимации барабана
+    setTimeout(() => {
+        isSlotSpinning = false;
+        checkSlotWin(finalSymbolsPerReel, rows);
+    }, maxDuration * 1000 + 100);
+}
+
+function checkSlotWin(reelsData, rowsCount) {
+    if (reelsData.length === 0) return;
+    
+    // 1. Вычисляем индекс центрального ряда
+    const targetRowIndex = Math.floor((rowsCount - 1) / 2);
+    
+    // 2. Собираем символы, которые остановились строго на центральной линии
+    let centerLineSymbols = reelsData.map(reel => reel[targetRowIndex]);
+    
+    // 3. Считаем, сколько БОМБ или ЧЕРЕПОВ на центральной линии
+    let badSymbolsCount = 0;
+    centerLineSymbols.forEach(sym => {
+        if (sym === '💣' || sym === '☠') {
+            badSymbolsCount++;
+        }
+    });
+
+    // 4. ПРОВЕРКА НА НЕУДАЧУ (Опасные символы)
+    if (badSymbolsCount === 1) {
+        // Находим, какой именно символ из двух выпал, чтобы вывести его в текст
+        const foundBad = centerLineSymbols.find(sym => sym === '💣' || sym === '☠');
+        showPopup("Упс!", `${foundBad}`);
+        return; // Выходим из функции, чтобы не проверять другие условия
+    } 
+    else if (badSymbolsCount === 2) {
+        // Находим оба выпавших опасных символа
+        const foundBad = centerLineSymbols.filter(sym => sym === '💣' || sym === '☠').join(' ');
+        showPopup("Ой-ой!", `${foundBad}`);
+        return;
+    } 
+    else if (badSymbolsCount >= 3) {
+        const foundBad = centerLineSymbols.filter(sym => sym === '💣' || sym === '☠').join(' ');
+        showPopup("КРИТИЧЕСКАЯ НЕУДАЧА", `${foundBad}`);
+        return;
+    }
+
+    // 5. ПРОВЕРКА НА ДЖЕКПОТ НА ВСЁ ПОЛЕ (Если опасных символов нет)
+    let allVisibleSymbols = [];
+    reelsData.forEach(reel => {
+        allVisibleSymbols = allVisibleSymbols.concat(reel);
+    });
+    
+    const firstSymbol = allVisibleSymbols[0];
+    const isFullScreenWin = allVisibleSymbols.every(sym => sym === firstSymbol);
+    
+    if (isFullScreenWin) {
+        showPopup("ДЖЕКПОТ НА ВСЁ ПОЛЕ!", `Весь экран заполнен символом: ${firstSymbol}`);
+    }
+}
+
+
+// ==================== ЛОГИКА КОЛЕСА ====================
+let parsedWheelItems = []; 
+let currentRotation = 0;
+let isWheelSpinning = false; // Защита от спама кнопкой колеса
+const canvas = document.getElementById('wheel-canvas');
+const ctx = canvas.getContext('2d');
+
+function initWheel() {
+    if (isWheelSpinning) return;
+    const text = document.getElementById('wheel-items').value;
+    parsedWheelItems = text.split('\n').map(item => {
+        const parts = item.split(':');
+        const name = parts[0].trim();
+        const weight = parts[1] ? parseFloat(parts[1].trim()) : 1;
+        return { name, weight };
+    }).filter(item => item.name.length > 0);
+    drawWheel();
+}
+
+function drawWheel() {
+    if (parsedWheelItems.length === 0) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        return;
+    }
+    const totalWeight = parsedWheelItems.reduce((sum, item) => sum + item.weight, 0);
+    const radius = canvas.width / 2;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    let currentAngle = 0;
+    for (let i = 0; i < parsedWheelItems.length; i++) {
+        const anglePerSegment = (2 * Math.PI) * (parsedWheelItems[i].weight / totalWeight);
+        const startAngle = currentAngle;
+        const endAngle = currentAngle + anglePerSegment;
+        
+        ctx.beginPath();
+        ctx.moveTo(radius, radius);
+        ctx.arc(radius, radius, radius, startAngle, endAngle);
+        ctx.closePath();
+        
+        ctx.fillStyle = `hsl(${(i * 360) / parsedWheelItems.length}, 70%, 50%)`;
+        ctx.fill();
+        ctx.stroke();
+        
+        ctx.save();
+        ctx.translate(radius, radius);
+        ctx.rotate(startAngle + anglePerSegment / 2);
+        ctx.textAlign = "right";
+        ctx.fillStyle = "#fff";
+        ctx.font = "bold 13px Arial";
+        ctx.shadowColor = "black";
+        ctx.shadowBlur = 4;
+        ctx.fillText(parsedWheelItems[i].name, radius - 10, 5);
+        ctx.restore();
+        
+        currentAngle = endAngle; 
+    }
+}
+
+function spinWheel() {
+    if (isWheelSpinning || parsedWheelItems.length === 0) return;
+    isWheelSpinning = true;
+    
+    const btn = document.getElementById('spin-wheel-btn');
+    btn.disabled = true;
+    
+    const extraDegrees = Math.floor(3600 + Math.random() * 360);
+    currentRotation += extraDegrees;
+    canvas.style.transform = `rotate(${currentRotation}deg)`;
+    
+    setTimeout(() => {
+        btn.disabled = false;
+        isWheelSpinning = false;
+        
+        const actualDegrees = currentRotation % 360;
+        let pointerAngle = (360 - actualDegrees + 270) % 360;
+        let pointerRad = (pointerAngle * Math.PI) / 180;
+        const totalWeight = parsedWheelItems.reduce((sum, item) => sum + item.weight, 0);
+        
+        let accumulatedAngle = 0;
+        let winningIndex = 0;
+        for (let i = 0; i < parsedWheelItems.length; i++) {
+            const anglePerSegment = (2 * Math.PI) * (parsedWheelItems[i].weight / totalWeight);
+            if (pointerRad >= accumulatedAngle && pointerRad < accumulatedAngle + anglePerSegment) {
+                winningIndex = i;
+                break;
+            }
+            accumulatedAngle += anglePerSegment;
+        }
+        
+        const winner = parsedWheelItems[winningIndex];
+        showPopup("Победитель определен!", winner.name);
+        
+        if (document.getElementById('elimination-mode').checked) {
+            parsedWheelItems.splice(winningIndex, 1);
+            document.getElementById('wheel-items').value = parsedWheelItems.map(item => `${item.name}:${item.weight}`).join('\n');
+            initWheel();
+        }
+    }, 4000);
+}
+
+// Стартовый запуск игр
+initSlots();
+initWheel();
+</script>
